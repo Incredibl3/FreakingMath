@@ -1,17 +1,17 @@
 {
   "appID": "bf38b7310eb446e39db829ed539385ae",
   "dependencies": {
-    "devkit-core": "https://github.com/gameclosure/devkit-core#v3.0.2"
+    "devkit-core": "https://github.com/gameclosure/devkit-core#v4.0.2",
+    "devkit-effects": "https://github.com/gameclosure/devkit-effects.git#v1.0.2"
   },
-  "shortName": "test",
+  "shortName": "freakingMath",
   "studio": {
-    "domain": "studio.example.com",
-    "name": "Your Studio Name",
+    "domain": "incredibl3.cf",
+    "name": "FuN incredibl3",
     "stagingDomain": "staging.example.com"
   },
   "supportedOrientations": [
-    "portrait",
-    "landscape"
+    "portrait"
   ],
-  "title": "test"
+  "title": "freakingMath"
 }
