@@ -38,7 +38,7 @@ exports = Class(GC.Application, function () {
     //Gameplay view
     this._gridView = new GridView({
       superview: this.view,
-      backgroundColor: "#38A8E8",
+      backgroundColor: "#7f8c8d",
       x: 0,
       y: 0,
       width: 600,
@@ -90,7 +90,8 @@ exports = Class(GC.Application, function () {
         colspan: 2,
         size: 128,
         wrap: true,
-        color: "black",
+        color: "white",
+        fontFamily: 'BPreplayBold',
         text: "Hello Fun Incredibl3!!!"
     });
 
@@ -101,8 +102,8 @@ exports = Class(GC.Application, function () {
         x: 30,
         y: 700,
         images: {
-          up: "resources/images/correct1.png",
-          down: "resources/images/correct2.png"
+          up: "resources/images/true1.png",
+          down: "resources/images/true2.png"
         },
         on: {
           up: bind(this, "onTrue")
@@ -116,8 +117,8 @@ exports = Class(GC.Application, function () {
         x: 300,
         y: 700,
         images: {
-          up: "resources/images/cancel1.png",
-          down: "resources/images/cancel2.png"
+          up: "resources/images/false1.png",
+          down: "resources/images/false2.png"
         },
         on: {
           up: bind(this, "onFalse")
