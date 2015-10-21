@@ -4,16 +4,22 @@ import ui.TextView as TextView;
 import ui.View as View;
 import ui.ScoreView as ScoreView;
 import math.util as util;
+import ui.ImageView as ImageView;
 
 import ui.widget.GridView as GridView;
 import ui.widget.ButtonView as ButtonView;
 import effects;
+import animate;
 
 var BG_HEIGHT = 1024;
 var BG_WIDTH = 576;
+var TIMEOUT = 1500;
+var bestScore;
 var score;
 var app;
 var isCorrectQuestion;
+var isFirstTime;
+
 exports = Class(GC.Application, function () {
 
   /**
@@ -30,7 +36,7 @@ exports = Class(GC.Application, function () {
 
   this.initUI = function () {
     app = this;
-
+    bestScore = 0;
     this.setScreenDimensions(BG_WIDTH > BG_HEIGHT);
 
     this.view.style.backgroundColor = "#FFFFFF";
@@ -49,9 +55,23 @@ exports = Class(GC.Application, function () {
       showInRange: true
     });
 
+    //Countdown tier
+    this.timerView = new View({
+        superview: this._gridView,
+        target: this._gridView,
+        layout: 'box',
+        x: 0,
+        y: 0,
+        width: BG_WIDTH,
+        height: 30,
+        row: 0,
+        colspan: 2,
+        backgroundColor: "white"
+    });
+
     //Score view
     this.scoreView = new ScoreView({
-      superview: this.view,
+      superview: this._gridView,
       target: this._gridView,
       x: 0,
       y: 100,
@@ -78,7 +98,7 @@ exports = Class(GC.Application, function () {
 
     //Question
     this.question = new TextView({
-        superview: this.view,
+        superview: this._gridView,
         target: this._gridView,
         layout: 'box',
         centerX: true,
@@ -96,14 +116,15 @@ exports = Class(GC.Application, function () {
     });
 
     //True button
-    new GridViewSetting({
-        superview: this.view,
+    this.trueBtn = new GridViewSetting({
+        superview: this._gridView,
         target: this._gridView,
         x: 30,
         y: 700,
         images: {
           up: "resources/images/true1.png",
-          down: "resources/images/true2.png"
+          down: "resources/images/true2.png",
+          disabled: "resources/images/true1.png"
         },
         on: {
           up: bind(this, "onTrue")
@@ -111,62 +132,108 @@ exports = Class(GC.Application, function () {
     });
 
     //False button
-    new GridViewSetting({
-        superview: this.view,
+    this.falseBtn = new GridViewSetting({
+        superview: this._gridView,
         target: this._gridView,
         x: 300,
         y: 700,
         images: {
           up: "resources/images/false1.png",
-          down: "resources/images/false2.png"
+          down: "resources/images/false2.png",
+          disabled: "resources/images/false1.png"
         },
         on: {
           up: bind(this, "onFalse")
         }
       });
-    };
 
-    //Gameover view
-    this._gridGameoverView = new GridView({
+    this._gridGameoverView = new ImageView({
           superview: this.view,
-          backgroundColor: "red",
           layout: 'box',
           centerX : true,
           y: 200,
-          width: 500,
-          height: 500,
+          width: 450,
+          height: 300,
           cols: 2,
           rows: 4,
           canHandleEvents: true,
           hideOutOfRange: true,
           showInRange: true,
-          on:{
-            up: bind(this, "reset")
-          }
+          zIndex: 5,
+          image: "resources/images/gameoverbg.png"
     });
 
     this.goText = new TextView({
-          superview: this.view,
+          superview: this._gridGameoverView,
           target: this._gridGameoverView,
           layout: 'box',
           centerX: true,
-          y: 250,
+          y: 20,
           width: 300,
           height: 300,
           verticalAlign: 'top',
           row: 1,
           colspan: 2,
-          size: 128,
+          zIndex: 5,
+          size: 40,
           wrap: true,
-          color: "black",
-          backgroundColor: "white",
-          text: "Fucking Loser !!!"
-      });
+          color: "white",
+          fontFamily: 'BPreplayBold',
+          canHandleEvents: true,
+          text: "Game Over \n\n New:  1 \n Best: 2"
+    });
 
+    this.btnPlay = new ButtonView({
+          superview: this._gridGameoverView,
+          target: this._gridGameoverView,
+          layout: 'box',
+          x: 50,
+          y: 210,
+          width: 152,
+          height: 75,
+          verticalAlign: 'top',
+          row: 1,
+          cols: 0,
+          zIndex: 5,
+          size: 40,
+          wrap: true,
+          image: "resources/images/play.png",
+          canHandleEvents: true,
+          hideOutOfRange: true,
+          showInRange: true,
+          zIndex: 5,
+          on:{
+            up: bind(this, "reset")
+          }
+    });
+
+    this.btnBack = new ButtonView({
+          superview: this._gridGameoverView,
+          target: this._gridGameoverView,
+          layout: 'box',
+          x: 250,
+          y: 210,
+          width: 152,
+          height: 75,
+          verticalAlign: 'top',
+          row: 1,
+          cols: 1,
+          zIndex: 5,
+          size: 40,
+          wrap: true,
+          image: "resources/images/back.png",
+          canHandleEvents: true,
+          hideOutOfRange: true,
+          showInRange: true,
+          zIndex: 5
+    });
+
+  };
   //onClick true button
   this.onTrue = function () {
     if(isCorrectQuestion)
     {
+      resetTimerView();
       score++;
       app.scoreView.setText(score);
       generateQuestion();
@@ -181,6 +248,7 @@ exports = Class(GC.Application, function () {
     {
       this.gameOver();
     }else{
+      resetTimerView();
       score++;
       app.scoreView.setText(score);
       generateQuestion();
@@ -188,12 +256,18 @@ exports = Class(GC.Application, function () {
   };
 
   this.gameOver = function ()  {
-    effects.shake(app.view, {duration: 500});
+    if(bestScore < score)
+      bestScore = score;
+    app.goText.setText("Game Over \n\n New:  "+score+" \nBest:  "+bestScore);
+    animate(app.timerView).clear();
+    effects.shake(app._gridView, {scale: 1, duration: 500});
+    app._gridGameoverView.show();
+    app.trueBtn.setState(ButtonView.states.DISABLED);
+    app.falseBtn.setState(ButtonView.states.DISABLED);
   }
 
   this.launchUI = function () {
     this.reset();
-    generateQuestion();
 
   };
 
@@ -203,18 +277,32 @@ exports = Class(GC.Application, function () {
    */
   this.reset = function(data) {
     score = 0;
+    isFirstTime = true;
+    app.scoreView.setText(score);
     isCorrectQuestion = true;
-    app._gridGameoverView.style.update({visible: false, y: -1000});
-    app.goText.style.update({visible: false, y: -1000});
+    app._gridGameoverView.hide();
+    generateQuestion();
+    app.trueBtn.setState(ButtonView.states.UP);
+    app.falseBtn.setState(ButtonView.states.UP);
+    randomBackground();
   };
 });
 
+function randomBackground(){
+  var bgArray = ["#7f8c8d","#8C43AD","#F39C12","#D15400","#25AE5D","#FF4444","#33B5E5","#FFBB33","#99CC00"];
+  var rand = bgArray[Math.floor(Math.random() * bgArray.length)];
+  app._gridView.style.update({backgroundColor: rand});
+}
 
+function resetTimerView(){
+  animate(app.timerView).clear();
+  app.timerView.style.update({width: BG_WIDTH});
+}
 
 function generateQuestion(){
   var a, b, result;
   if(score < 5)
-  {
+  { 
     a = util.random(1, 5);
     b = util.random(1, 5);
   }else if(score < 10){
@@ -262,6 +350,15 @@ function generateQuestion(){
   }
 
   app.question.setText(a + " " + opStr + " " + b + " =" + result);
+
+  if(isFirstTime)
+    isFirstTime = false;
+  else
+    startCountdownTimer();
+ }
+
+function startCountdownTimer(){
+  animate(app.timerView).now({width: 0}, TIMEOUT, animate.linear).then(app.gameOver.bind());
 }
 
 var GridViewSetting = Class(ButtonView, function (supr) {
@@ -279,6 +376,7 @@ var GridViewSetting = Class(ButtonView, function (supr) {
           horizontal: {left: 40, right: 40},
           vertical: {top: 4, bottom: 4}
         },
+        zIndex: 0,
         text: {
           color: "#000044",
           size: 11,
@@ -290,7 +388,7 @@ var GridViewSetting = Class(ButtonView, function (supr) {
 
     supr(this, "init", [opts]);
 
-    this._target = opts.target;
+    // this._target = opts.target;
     this._textViewOpts = opts.textViewOpts;
     this._options = opts.options;
     this._optionIndex = 0;
