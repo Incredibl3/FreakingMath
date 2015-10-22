@@ -11,8 +11,8 @@ import ui.widget.ButtonView as ButtonView;
 import effects;
 import animate;
 
-var BG_HEIGHT = 1024;
 var BG_WIDTH = 576;
+var BG_HEIGHT = 1024;
 var TIMEOUT = 1500;
 var bestScore;
 var score;
@@ -21,18 +21,6 @@ var isCorrectQuestion;
 var isFirstTime;
 
 exports = Class(GC.Application, function () {
-
-  /**
-   * setScreenDimensions
-   * ~ normalizes the game's root view to fit any device screen
-   */
-  this.setScreenDimensions = function(horz) {
-    var ds = device.screen;
-    var vs = this.view.style;
-    vs.width = horz ? ds.width * (BG_HEIGHT / ds.height) : BG_WIDTH;
-    vs.height = horz ? BG_HEIGHT : ds.height * (BG_WIDTH / ds.width);
-    vs.scale = horz ? ds.height / BG_HEIGHT : ds.width / BG_WIDTH;
-  };
 
   this.initUI = function () {
     app = this;
@@ -45,10 +33,8 @@ exports = Class(GC.Application, function () {
     this._gridView = new GridView({
       superview: this.view,
       backgroundColor: "#7f8c8d",
-      x: 0,
-      y: 0,
-      width: 600,
-      height: 1200,
+      width: BG_WIDTH,
+      height: BG_HEIGHT,
       cols: 2,
       rows: 4,
       hideOutOfRange: true,
@@ -63,7 +49,7 @@ exports = Class(GC.Application, function () {
         x: 0,
         y: 0,
         width: BG_WIDTH,
-        height: 30,
+        height: 15,
         row: 0,
         colspan: 2,
         backgroundColor: "white"
@@ -147,13 +133,28 @@ exports = Class(GC.Application, function () {
         }
       });
 
-    this._gridGameoverView = new ImageView({
+    this._gridGameoverView = new View({
           superview: this.view,
           layout: 'box',
           centerX : true,
           y: 200,
-          width: 450,
-          height: 300,
+          width: 465,
+          height: 420,
+          cols: 2,
+          rows: 4,
+          canHandleEvents: true,
+          hideOutOfRange: true,
+          showInRange: true,
+          zIndex: 5
+    });
+
+    this.goBackground = new ImageView({
+          superview: this._gridGameoverView,
+          layout: 'box',
+          centerX : true,
+          y: 0,
+          width: 465,
+          height: 330,
           cols: 2,
           rows: 4,
           canHandleEvents: true,
@@ -168,9 +169,9 @@ exports = Class(GC.Application, function () {
           target: this._gridGameoverView,
           layout: 'box',
           centerX: true,
-          y: 20,
+          y: 50,
           width: 300,
-          height: 300,
+          height: 250,
           verticalAlign: 'top',
           row: 1,
           colspan: 2,
@@ -180,7 +181,7 @@ exports = Class(GC.Application, function () {
           color: "white",
           fontFamily: 'BPreplayBold',
           canHandleEvents: true,
-          text: "Game Over \n\n New:  1 \n Best: 2"
+          text: "Game Over \n\n New:  1 \n\n Best: 2"
     });
 
     this.btnPlay = new ButtonView({
@@ -188,7 +189,7 @@ exports = Class(GC.Application, function () {
           target: this._gridGameoverView,
           layout: 'box',
           x: 50,
-          y: 210,
+          y: 335,
           width: 152,
           height: 75,
           verticalAlign: 'top',
@@ -212,7 +213,7 @@ exports = Class(GC.Application, function () {
           target: this._gridGameoverView,
           layout: 'box',
           x: 250,
-          y: 210,
+          y: 335,
           width: 152,
           height: 75,
           verticalAlign: 'top',
@@ -229,6 +230,19 @@ exports = Class(GC.Application, function () {
     });
 
   };
+
+  /**
+   * setScreenDimensions
+   * ~ normalizes the game's root view to fit any device screen
+   */
+  this.setScreenDimensions = function(horz) {
+    var ds = device.screen;
+    var vs = this.view.style;
+    vs.width = horz ? ds.width * (BG_HEIGHT / ds.height) : BG_WIDTH;
+    vs.height = horz ? BG_HEIGHT : ds.height * (BG_WIDTH / ds.width);
+    vs.scale = horz ? ds.height / BG_HEIGHT : ds.width / BG_WIDTH;
+  };
+
   //onClick true button
   this.onTrue = function () {
     if(isCorrectQuestion)
@@ -258,7 +272,7 @@ exports = Class(GC.Application, function () {
   this.gameOver = function ()  {
     if(bestScore < score)
       bestScore = score;
-    app.goText.setText("Game Over \n\n New:  "+score+" \nBest:  "+bestScore);
+    app.goText.setText("Game Over \n\n New:  "+score+" \n\nBest:  "+bestScore);
     animate(app.timerView).clear();
     effects.shake(app._gridView, {scale: 1, duration: 500});
     app._gridGameoverView.show();
@@ -285,6 +299,7 @@ exports = Class(GC.Application, function () {
     app.trueBtn.setState(ButtonView.states.UP);
     app.falseBtn.setState(ButtonView.states.UP);
     randomBackground();
+    resetTimerView();
   };
 });
 
@@ -387,8 +402,6 @@ var GridViewSetting = Class(ButtonView, function (supr) {
     );
 
     supr(this, "init", [opts]);
-
-    // this._target = opts.target;
     this._textViewOpts = opts.textViewOpts;
     this._options = opts.options;
     this._optionIndex = 0;
