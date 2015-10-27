@@ -290,17 +290,17 @@ exports = Class(GC.Application, function () {
    * ~ resets all game elements for a new game
    */
   this.reset = function(data) {
-    // score = 0;
-    // isFirstTime = true;
-    // app.scoreView.setText(score);
-    // isCorrectQuestion = true;
-    // app._gridGameoverView.hide();
-    // generateQuestion();
-    // app.trueBtn.setState(ButtonView.states.UP);
-    // app.falseBtn.setState(ButtonView.states.UP);
-    // randomBackground();
-    // resetTimerView();
-	qrscanner.scanBarCode();
+    score = 0;
+    isFirstTime = true;
+    app.scoreView.setText(score);
+    isCorrectQuestion = true;
+    app._gridGameoverView.hide();
+    generateQuestion();
+    app.trueBtn.setState(ButtonView.states.UP);
+    app.falseBtn.setState(ButtonView.states.UP);
+    randomBackground();
+    resetTimerView();
+	// qrscanner.scanBarCode();
   };
 });
 
