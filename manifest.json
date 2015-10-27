@@ -2,7 +2,8 @@
   "appID": "bf38b7310eb446e39db829ed539385ae",
   "dependencies": {
     "devkit-core": "https://github.com/gameclosure/devkit-core#v4.0.2",
-    "devkit-effects": "https://github.com/gameclosure/devkit-effects.git#v1.0.2"
+    "devkit-effects": "https://github.com/gameclosure/devkit-effects.git#v1.0.2",
+	"qrscanner": https://bitbucket.org/tiendv/qrscannerplugin.git",
   },
   "shortName": "freakingMath",
   "studio": {
