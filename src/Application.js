@@ -1,5 +1,5 @@
 import device;
-import qrscanner;
+// import qrscanner;
 import ui.TextView as TextView;
 import ui.View as View;
 import ui.ScoreView as ScoreView;
@@ -11,9 +11,14 @@ import ui.widget.ButtonView as ButtonView;
 import effects;
 import animate;
 
-var BG_WIDTH = 576;
-var BG_HEIGHT = 1024;
+var boundsWidth = 576;
+var boundsHeight = 1024;
+var baseWidth = boundsWidth;
+var baseHeight = device.screen.height * (boundsWidth / device.screen.width); //864
+var scale = device.screen.width / baseWidth;
+
 var TIMEOUT = 1500;
+var TIMEMOVE = 300;
 var bestScore;
 var score;
 var app;
@@ -25,7 +30,10 @@ exports = Class(GC.Application, function () {
   this.initUI = function () {
     app = this;
     bestScore = 0;
-    this.setScreenDimensions(BG_WIDTH > BG_HEIGHT);
+    // this.setScreenDimensions(boundsWidth > boundsHeight);
+
+    //scale the root view
+    this.view.style.scale = scale;
 
     this.view.style.backgroundColor = "#FFFFFF";
 
@@ -33,8 +41,8 @@ exports = Class(GC.Application, function () {
     this._gridView = new GridView({
       superview: this.view,
       backgroundColor: "#7f8c8d",
-      width: BG_WIDTH,
-      height: BG_HEIGHT,
+      width: baseWidth * 2,
+      height: baseHeight,
       cols: 2,
       rows: 4,
       hideOutOfRange: true,
@@ -48,7 +56,7 @@ exports = Class(GC.Application, function () {
         layout: 'box',
         x: 0,
         y: 0,
-        width: BG_WIDTH,
+        width: boundsWidth,
         height: 15,
         row: 0,
         colspan: 2,
@@ -60,8 +68,8 @@ exports = Class(GC.Application, function () {
       superview: this._gridView,
       target: this._gridView,
       x: 0,
-      y: 100,
-      width: BG_WIDTH,
+      y: 30,
+      width: boundsWidth,
       height: 75,
       text: "0",
       horizontalAlign: "center",
@@ -87,10 +95,29 @@ exports = Class(GC.Application, function () {
         superview: this._gridView,
         target: this._gridView,
         layout: 'box',
-        centerX: true,
-        y: 250,
-        width: 400,
-        height: 400,
+        y: boundsHeight / 3,
+        width: boundsWidth,
+        height: boundsHeight / 3,
+        verticalAlign: 'top',
+        centerY: true,
+        row: 1,
+        colspan: 2,
+        size: 128,
+        wrap: true,
+        color: "white",
+        fontFamily: 'BPreplayBold',
+        text: "Hello Fun Incredibl3!!!"
+    });
+
+    //Question2
+    this.question2 = new TextView({
+        superview: this._gridView,
+        target: this._gridView,
+        layout: 'box',
+        x: boundsWidth,
+        y: boundsHeight / 3,
+        width: boundsWidth,
+        height: boundsHeight / 3,
         verticalAlign: 'top',
         row: 1,
         colspan: 2,
@@ -106,7 +133,7 @@ exports = Class(GC.Application, function () {
         superview: this._gridView,
         target: this._gridView,
         x: 30,
-        y: 700,
+        y: baseHeight - baseHeight / 3.5 - 50,
         images: {
           up: "resources/images/true1.png",
           down: "resources/images/true2.png",
@@ -121,8 +148,8 @@ exports = Class(GC.Application, function () {
     this.falseBtn = new GridViewSetting({
         superview: this._gridView,
         target: this._gridView,
-        x: 300,
-        y: 700,
+        x: baseWidth / 2 + 10,
+        y: baseHeight - baseHeight / 3.5 - 50,
         images: {
           up: "resources/images/false1.png",
           down: "resources/images/false2.png",
@@ -238,9 +265,9 @@ exports = Class(GC.Application, function () {
   this.setScreenDimensions = function(horz) {
     var ds = device.screen;
     var vs = this.view.style;
-    vs.width = horz ? ds.width * (BG_HEIGHT / ds.height) : BG_WIDTH;
-    vs.height = horz ? BG_HEIGHT : ds.height * (BG_WIDTH / ds.width);
-    vs.scale = horz ? ds.height / BG_HEIGHT : ds.width / BG_WIDTH;
+    vs.width = horz ? ds.width * (boundsHeight / ds.height) : boundsWidth;
+    vs.height = horz ? boundsHeight : ds.height * (boundsWidth / ds.width);
+    vs.scale = horz ? ds.height / boundsHeight : ds.width / boundsWidth;
   };
 
   //onClick true button
@@ -250,7 +277,9 @@ exports = Class(GC.Application, function () {
       resetTimerView();
       score++;
       app.scoreView.setText(score);
-      generateQuestion();
+      // animate(app.question).clear();
+      animate(app.question).now({x: -boundsWidth}, TIMEMOVE);
+      generateQuestion(false);
     }else{
       this.gameOver();
     }
@@ -265,7 +294,9 @@ exports = Class(GC.Application, function () {
       resetTimerView();
       score++;
       app.scoreView.setText(score);
-      generateQuestion();
+      // animate(app.question).clear();
+      animate(app.question).now({x: -boundsWidth}, TIMEMOVE);
+      generateQuestion(false);
     }
   };
 
@@ -295,7 +326,7 @@ exports = Class(GC.Application, function () {
     app.scoreView.setText(score);
     isCorrectQuestion = true;
     app._gridGameoverView.hide();
-    generateQuestion();
+    generateQuestion(true);
     app.trueBtn.setState(ButtonView.states.UP);
     app.falseBtn.setState(ButtonView.states.UP);
     randomBackground();
@@ -312,13 +343,13 @@ function randomBackground(){
 
 function resetTimerView(){
   animate(app.timerView).clear();
-  app.timerView.style.update({width: BG_WIDTH});
+  app.timerView.style.update({width: boundsWidth});
 }
 
-function generateQuestion(){
+function generateQuestion(bFirstQuestion){
   var a, b, result;
   if(score < 5)
-  { 
+  {
     a = util.random(1, 5);
     b = util.random(1, 5);
   }else if(score < 10){
@@ -365,13 +396,23 @@ function generateQuestion(){
     isCorrectQuestion = true;
   }
 
-  app.question.setText(a + " " + opStr + " " + b + " =" + result);
-
-  if(isFirstTime)
-    isFirstTime = false;
-  else
+  if(bFirstQuestion)
+  {
+    app.question.setText(a + " " + opStr + " " + b + " =" + result);
+    if(isFirstTime)
+      isFirstTime = false;
+    else
+      startCountdownTimer();
+  }else{
+    app.question2.setText(a + " " + opStr + " " + b + " =" + result);
+    animate(app.question2).now({x: 0}, TIMEMOVE);
+    var tmp;
+    tmp = app.question2;
+    app.question2 = app.question;
+    app.question = tmp;
     startCountdownTimer();
- }
+  }
+}
 
 function startCountdownTimer(){
   animate(app.timerView).now({width: 0}, TIMEOUT, animate.linear).then(app.gameOver.bind());
@@ -382,8 +423,8 @@ var GridViewSetting = Class(ButtonView, function (supr) {
     opts = merge(
       opts,
       {
-        width: 250,
-        height: 300,
+        width: boundsWidth / 2.3,
+        height: boundsHeight / 3.5,
         sourceSlices: {
           horizontal: {left: 80, center: 116, right: 80},
           vertical: {top: 10, middle: 80, bottom: 10}
